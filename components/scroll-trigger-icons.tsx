@@ -1,5 +1,9 @@
 "use client"
 
+import React, { useEffect, useRef } from "react"
+import gsap from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
+
 import {
   Box,
   Tag,
@@ -15,6 +19,74 @@ import {
 } from "lucide-react"
 
 export default function ScrollTriggerIcons() {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+  gsap.registerPlugin(ScrollTrigger)
+
+  if (!containerRef.current) return
+
+  const iconsNodeList = containerRef.current.querySelectorAll<HTMLElement>(".animated-icon")
+  if (!iconsNodeList.length) return
+
+  const iconsArray = Array.from(iconsNodeList)
+  iconsArray.sort((a, b) => {
+    const ao = parseInt(a.dataset.order ?? "999", 10)
+    const bo = parseInt(b.dataset.order ?? "999", 10)
+    return ao - bo
+  })
+
+  // 🔥 Make animation faster by reducing scroll distance per icon
+  const perIconScroll = 180 // was 360
+  const totalScroll = perIconScroll * iconsArray.length
+  const pinTarget = containerRef.current.closest("main") ?? containerRef.current
+
+  ScrollTrigger.getAll().forEach((st) => st.kill())
+
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: pinTarget as Element,
+      start: "top top",
+      end: `+=${totalScroll}`,
+      scrub: 0.5, // smoother + faster
+      pin: true,
+      anticipatePin: 1,
+    },
+  })
+
+  iconsArray.forEach((iconEl, i) => {
+    const wrapper = iconEl.parentElement as HTMLElement | null
+    const delayPosition = i * 0.25
+
+    tl.to(
+      wrapper ?? iconEl,
+      {
+        transform: "translate(0px, 0px)",
+        duration: 0.8,
+        ease: "power2.inOut",
+      },
+      delayPosition
+    )
+
+    tl.to(
+      iconEl,
+      {
+        scale: 0,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power2.inOut",
+      },
+      delayPosition
+    )
+  })
+
+  return () => {
+    tl.kill()
+    ScrollTrigger.getAll().forEach((st) => st.kill())
+  }
+}, [])
+
+
   const bubbleClasses =
     "relative rounded-full backdrop-blur-lg bg-white/70 dark:bg-white/10 shadow-[0px_2px_10px_rgba(0,0,0,0.1)] p-2 sm:p-3 flex items-center justify-center border border-white/40 dark:border-white/10 bg-gradient-to-r"
   const innerClasses = "w-7 h-7 sm:w-10 sm:h-10 flex items-center justify-center"
@@ -22,7 +94,7 @@ export default function ScrollTriggerIcons() {
     "absolute left-1/2 -translate-x-1/2 top-full mt-3 w-60 sm:w-72 bg-white/95 dark:bg-neutral-900 rounded-lg shadow-xl text-card-foreground z-50 pointer-events-auto transition-all duration-200 ease-out scale-95 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0 group-focus-within:opacity-100"
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+    <div ref={containerRef} className="absolute inset-0 flex items-center justify-center pointer-events-none">
       {/* ---------- SHARED HELPER ---------- */}
       {/* Each card now centers below icon with dashed border and extra padding */}
 
@@ -33,7 +105,7 @@ export default function ScrollTriggerIcons() {
         className="absolute will-change-transform flex lg:hidden group pointer-events-auto"
         style={{ transform: "translate(38vw, -30vh)", zIndex: 50 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-emerald-50`} aria-hidden>
+        <div className={`${bubbleClasses} from-white/70 to-emerald-50 animated-icon`} data-order="1" aria-hidden>
           <div className={innerClasses}>
             <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
           </div>
@@ -59,7 +131,7 @@ export default function ScrollTriggerIcons() {
         className="absolute will-change-transform flex lg:hidden group pointer-events-auto"
         style={{ transform: "translate(-40vw, -30vh)", zIndex: 50 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-indigo-50`} aria-hidden>
+        <div className={`${bubbleClasses} from-white/70 to-indigo-50 animated-icon`} data-order="2" aria-hidden>
           <div className={innerClasses}>
             <Box className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" />
           </div>
@@ -85,7 +157,7 @@ export default function ScrollTriggerIcons() {
         className="absolute will-change-transform flex lg:hidden group pointer-events-auto"
         style={{ transform: "translate(-28vw, 22vh)", zIndex: 50 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-amber-50`} aria-hidden>
+        <div className={`${bubbleClasses} from-white/70 to-amber-50 animated-icon`} data-order="3" aria-hidden>
           <div className={innerClasses}>
             <Tag className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
           </div>
@@ -111,7 +183,7 @@ export default function ScrollTriggerIcons() {
         className="absolute will-change-transform flex lg:hidden group pointer-events-auto"
         style={{ transform: "translate(27vw, 22vh)", zIndex: 50 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-purple-50`} aria-hidden>
+        <div className={`${bubbleClasses} from-white/70 to-purple-50 animated-icon`} data-order="4" aria-hidden>
           <div className={innerClasses}>
             <Search className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
           </div>
@@ -137,7 +209,7 @@ export default function ScrollTriggerIcons() {
         className="absolute will-change-transform flex lg:hidden group pointer-events-auto"
         style={{ transform: "translate(0vw, 40vh)", zIndex: 50 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-violet-50`} aria-hidden>
+        <div className={`${bubbleClasses} from-white/70 to-violet-50 animated-icon`} data-order="5" aria-hidden>
           <div className={innerClasses}>
             <Users className="w-5 h-5 sm:w-6 sm:h-6 text-violet-600" />
           </div>
@@ -165,7 +237,7 @@ export default function ScrollTriggerIcons() {
         className="absolute will-change-transform hidden lg:flex group pointer-events-auto"
         style={{ transform: "translate(40vw, -38vh)", zIndex: 40 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-emerald-50`}>
+        <div className={`${bubbleClasses} from-white/70 to-emerald-50 animated-icon`} data-order="6">
           <div className={innerClasses}>
             <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
           </div>
@@ -189,9 +261,9 @@ export default function ScrollTriggerIcons() {
       {/* Box */}
       <div
         className="absolute will-change-transform hidden lg:flex group pointer-events-auto"
-        style={{ transform: "translate(-40vw, -42vh)", zIndex: 40 }}
+        style={{ transform: "translate(-40vw, -40vh)", zIndex: 40 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-indigo-50`}>
+        <div className={`${bubbleClasses} from-white/70 to-indigo-50 animated-icon`} data-order="7">
           <div className={innerClasses}>
             <Box className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" />
           </div>
@@ -217,7 +289,7 @@ export default function ScrollTriggerIcons() {
         className="absolute will-change-transform hidden lg:flex group pointer-events-auto"
         style={{ transform: "translate(-28vw, -22vh)", zIndex: 40 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-amber-50`}>
+        <div className={`${bubbleClasses} from-white/70 to-amber-50 animated-icon`} data-order="8">
           <div className={innerClasses}>
             <Tag className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
           </div>
@@ -243,7 +315,7 @@ export default function ScrollTriggerIcons() {
         className="absolute will-change-transform hidden lg:flex group pointer-events-auto"
         style={{ transform: "translate(-29vw, 15vh)", zIndex: 40 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-cyan-50`}>
+        <div className={`${bubbleClasses} from-white/70 to-cyan-50 animated-icon`} data-order="9">
           <div className={innerClasses}>
             <Download className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-600" />
           </div>
@@ -269,7 +341,7 @@ export default function ScrollTriggerIcons() {
         className="absolute will-change-transform hidden lg:flex group pointer-events-auto"
         style={{ transform: "translate(-40vw, 40vh)", zIndex: 40 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-rose-50`}>
+        <div className={`${bubbleClasses} from-white/70 to-rose-50 animated-icon`} data-order="10">
           <div className={innerClasses}>
             <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
           </div>
@@ -295,7 +367,7 @@ export default function ScrollTriggerIcons() {
         className="absolute will-change-transform hidden lg:flex group pointer-events-auto"
         style={{ transform: "translate(-22vw, 47vh)", zIndex: 40 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-yellow-50`}>
+        <div className={`${bubbleClasses} from-white/70 to-yellow-50 animated-icon`} data-order="11">
           <div className={innerClasses}>
             <Star className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />
           </div>
@@ -321,7 +393,7 @@ export default function ScrollTriggerIcons() {
         className="absolute will-change-transform hidden lg:flex group pointer-events-auto"
         style={{ transform: "translate(-5vw, 42vh)", zIndex: 40 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-gray-50`}>
+        <div className={`${bubbleClasses} from-white/70 to-gray-50 animated-icon`} data-order="12">
           <div className={innerClasses}>
             <Headphones className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
           </div>
@@ -347,7 +419,7 @@ export default function ScrollTriggerIcons() {
         className="absolute will-change-transform hidden lg:flex group pointer-events-auto"
         style={{ transform: "translate(30vw, -6vh)", zIndex: 40 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-purple-50`}>
+        <div className={`${bubbleClasses} from-white/70 to-purple-50 animated-icon`} data-order="13">
           <div className={innerClasses}>
             <Search className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
           </div>
@@ -373,7 +445,7 @@ export default function ScrollTriggerIcons() {
         className="absolute will-change-transform hidden lg:flex group pointer-events-auto"
         style={{ transform: "translate(25vw, 42vh)", zIndex: 40 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-orange-50`}>
+        <div className={`${bubbleClasses} from-white/70 to-orange-50 animated-icon`} data-order="14">
           <div className={innerClasses}>
             <Grid className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
           </div>
@@ -399,7 +471,7 @@ export default function ScrollTriggerIcons() {
         className="absolute will-change-transform hidden lg:flex group pointer-events-auto"
         style={{ transform: "translate(40vw, 20vh)", zIndex: 40 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-teal-50`}>
+        <div className={`${bubbleClasses} from-white/70 to-teal-50 animated-icon`} data-order="15">
           <div className={innerClasses}>
             <Upload className="w-5 h-5 sm:w-6 sm:h-6 text-teal-600" />
           </div>
@@ -425,7 +497,7 @@ export default function ScrollTriggerIcons() {
         className="absolute will-change-transform hidden lg:flex group pointer-events-auto"
         style={{ transform: "translate(-44vw, -4vh)", zIndex: 40 }}
       >
-        <div className={`${bubbleClasses} from-white/70 to-violet-50`}>
+        <div className={`${bubbleClasses} from-white/70 to-violet-50 animated-icon`} data-order="16">
           <div className={innerClasses}>
             <Users className="w-5 h-5 sm:w-6 sm:h-6 text-violet-600" />
           </div>
