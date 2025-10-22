@@ -122,6 +122,6 @@
   background-size: 200% 100%;
   background-repeat: no-repeat;
   animation: shine 5s ease-in-out infinite;
-  animation-delay: 10s;
+
   z-index: 2;
 }
